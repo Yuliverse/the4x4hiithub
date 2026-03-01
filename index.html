@@ -390,8 +390,11 @@ button{font-family:inherit;cursor:pointer;}
     <div class="dlogo">4<span>x</span>4 HIIT HUB</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button id="create-acct-btn" onclick="startOnboarding()" class="btn btn-primary btn-sm" style="display:none;">⚡ CREATE ACCOUNT</button>
-      <div class="upill">
-        <div class="uav" id="dav">G</div>
+      <div class="upill" onclick="openProfile()" style="cursor:pointer;" title="Edit profile">
+        <div>
+          <div class="uav" id="dav">G</div>
+          <div class="uav-hint" id="av-hint"></div>
+        </div>
         <div class="uname" id="dunm">GUEST</div>
       </div>
     </div>
@@ -461,6 +464,59 @@ button{font-family:inherit;cursor:pointer;}
   </nav>
 </div>
 
+<!-- PROFILE MODAL -->
+<div id="profile-modal" class="modal-overlay" onclick="if(event.target===this)closeProfile()">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-ttl">MY PROFILE</div>
+      <button class="modal-close" onclick="closeProfile()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="success-msg" id="profile-success">✓ PROFILE UPDATED</div>
+
+      <div class="field"><label>Name / Username</label>
+        <input id="pf-name" type="text" autocomplete="off" placeholder="e.g. IronMike">
+      </div>
+      <div class="field"><label>Email (optional)</label>
+        <input id="pf-email" type="email" autocomplete="off" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>I Train As</label>
+        <div class="rgroup">
+          <div class="rbtn" id="pf-gent" onclick="pfPickR('gender','gent','pf-gent','pf-lady')">💪 Gent</div>
+          <div class="rbtn" id="pf-lady" onclick="pfPickR('gender','lady','pf-gent','pf-lady')">✨ Lady</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Fitness Level</label>
+        <div class="rgroup">
+          <div class="rbtn" id="pf-beg" onclick="pfPickR('level','beginner','pf-beg','pf-mod','pf-adv')">🌱 Beginner</div>
+          <div class="rbtn" id="pf-mod" onclick="pfPickR('level','moderate','pf-beg','pf-mod','pf-adv')">⚡ Moderate</div>
+          <div class="rbtn" id="pf-adv" onclick="pfPickR('level','advanced','pf-beg','pf-mod','pf-adv')">🔥 Advanced</div>
+        </div>
+      </div>
+      <div class="field"><label>Workout Days Per Week</label>
+        <select id="pf-days">
+          <option value="3">3 days</option>
+          <option value="4">4 days</option>
+          <option value="5">5 days</option>
+          <option value="6">6 days</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="saveProfile()">SAVE CHANGES ✓</button>
+
+      <hr class="modal-divider">
+
+      <button class="btn btn-block" onclick="logOut()"
+        style="background:transparent;border:1px solid var(--bdr);color:var(--dim);width:100%;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:11px;cursor:pointer;transition:all .2s;"
+        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+        onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--dim)'">
+        ⏏ LOG OUT
+      </button>
+    </div>
+  </div>
+</div>
 <!-- ══ PROGRAM ══ -->
 <div id="screen-program" class="screen">
   <div class="phdr">
@@ -738,6 +794,67 @@ function startOnboarding(){
   showScreen('onboarding');
 }
 
+/* ── PROFILE MODAL ── */
+let pfSel={gender:'',level:''};
+
+function openProfile(){
+  if(APP.isGuest){startOnboarding();return;}
+  const u=APP.user;
+  pfSel.gender=u.gender||'gent';
+  pfSel.level=u.level||'moderate';
+  // Populate fields
+  const n=$('pf-name');if(n)n.value=u.name||'';
+  const e=$('pf-email');if(e)e.value=u.email||'';
+  const d=$('pf-days');if(d)d.value=u.days||4;
+  // Radio buttons — gender
+  ['pf-gent','pf-lady'].forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
+  const gEl=$('pf-'+(pfSel.gender==='lady'?'lady':'gent'));if(gEl)gEl.classList.add('on');
+  // Radio buttons — level
+  ['pf-beg','pf-mod','pf-adv'].forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
+  const lvMap={beginner:'pf-beg',moderate:'pf-mod',advanced:'pf-adv'};
+  const lvEl=$(lvMap[pfSel.level]||'pf-mod');if(lvEl)lvEl.classList.add('on');
+  // Hide success message
+  const sm=$('profile-success');if(sm)sm.classList.remove('show');
+  // Open modal
+  const m=$('profile-modal');if(m)m.classList.add('open');
+}
+
+function closeProfile(){
+  const m=$('profile-modal');if(m)m.classList.remove('open');
+}
+
+function pfPickR(key,val,...ids){
+  pfSel[key]=val;
+  ids.forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
+  // Find the button whose onclick contains this value and highlight it
+  ids.forEach(id=>{
+    const el=$(id);if(!el)return;
+    const oc=el.getAttribute('onclick')||'';
+    if(oc.includes("'"+val+"'")){el.classList.add('on');}
+  });
+}
+
+function saveProfile(){
+  const nm=($('pf-name').value||'').trim();
+  if(!nm){$('pf-name').focus();return;}
+  APP.user.name=nm;
+  APP.user.email=($('pf-email').value||'').trim();
+  APP.user.gender=pfSel.gender||APP.user.gender;
+  APP.user.level=pfSel.level||APP.user.level;
+  APP.user.days=parseInt($('pf-days').value)||APP.user.days;
+  save();
+  renderDash();
+  const sm=$('profile-success');if(sm)sm.classList.add('show');
+  setTimeout(()=>{if(sm)sm.classList.remove('show');},2500);
+}
+
+function logOut(){
+  const m=$('profile-modal');if(m)m.classList.remove('open');
+  APP={isGuest:true,user:{name:'Guest',email:'',gender:'gent',level:'beginner',goals:[],days:4,wantProg:false,weeks:8},stats:{total:0,streak:0,best:0,mins:0,lastDate:'',badges:[],history:[]},program:null};
+  try{localStorage.removeItem('4x4hub');}catch(e){}
+  showScreen('splash');
+}
+
 /* ── DASHBOARD ── */
 function renderDash(){
   const u=APP.user,s=APP.stats;
@@ -754,6 +871,9 @@ function renderDash(){
   const gb=$('guest-banner');
   if(cab)cab.style.display=APP.isGuest?'inline-flex':'none';
   if(gb)gb.style.display=APP.isGuest?'flex':'none';
+  // Avatar hint — show edit indicator for logged-in users
+  const avh=$('av-hint');
+  if(avh)avh.textContent=APP.isGuest?'':'EDIT';
 }
 function swTab(nm){
   ['home','progress','badges'].forEach(t=>{
