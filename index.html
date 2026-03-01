@@ -388,9 +388,12 @@ button{font-family:inherit;cursor:pointer;}
 <div id="screen-dashboard" class="screen">
   <div class="dhdr">
     <div class="dlogo">4<span>x</span>4 HIIT HUB</div>
-    <div class="upill">
-      <div class="uav" id="dav">G</div>
-      <div class="uname" id="dunm">GUEST</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="create-acct-btn" onclick="startOnboarding()" class="btn btn-primary btn-sm" style="display:none;">⚡ CREATE ACCOUNT</button>
+      <div class="upill">
+        <div class="uav" id="dav">G</div>
+        <div class="uname" id="dunm">GUEST</div>
+      </div>
     </div>
   </div>
   <div class="dbody pb70">
@@ -404,6 +407,14 @@ button{font-family:inherit;cursor:pointer;}
       <div class="wbanner">
         <div class="wname">READY,<br><span id="dname">ATHLETE</span>?</div>
         <div class="wsub" id="dstrmsg">Complete your first workout to start your streak.</div>
+      </div>
+      <!-- Guest banner — hidden for registered users -->
+      <div id="guest-banner" style="display:none;background:linear-gradient(135deg,#0a1a0a,#0a120f);border:1px solid var(--acc);padding:16px 18px;margin-bottom:16px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--acc);letter-spacing:2px;">SAVE YOUR PROGRESS</div>
+          <div style="font-size:11px;color:var(--dim);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;margin-top:3px;">Create a free account to track streaks, badges &amp; history</div>
+        </div>
+        <button onclick="startOnboarding()" class="btn btn-primary btn-sm" style="flex-shrink:0;white-space:nowrap;">⚡ CREATE ACCOUNT</button>
       </div>
       <div class="srow">
         <div class="scard"><div class="snum" id="ss">0</div><div class="slbl">🔥 Streak</div></div>
@@ -707,6 +718,25 @@ function guestMode(){
   APP.user={name:'Guest',email:'',gender:'gent',level:'moderate',goals:[],days:4,wantProg:false,weeks:8};
   showScreen('dashboard');
 }
+function startOnboarding(){
+  // Reset all onboarding form state before showing
+  SEL={gender:'',level:'',goals:[],prog:''};
+  const obn=$('obn');if(obn)obn.value='';
+  const obe=$('obe');if(obe)obe.value='';
+  ['rb-gent','rb-lady','rb-beg','rb-mod','rb-adv','rb-py','rb-pn'].forEach(id=>{
+    const el=$(id);if(el)el.classList.remove('on');
+  });
+  ['cg-wl','cg-fs','cg-str','cg-end','cg-gen'].forEach(id=>{
+    const el=$(id);if(el)el.classList.remove('on');
+  });
+  hideErr();
+  $('obs1').style.display='block';
+  $('obs2').style.display='none';
+  $('obs3').style.display='none';
+  $('progopts').style.display='none';
+  stepDots(1);
+  showScreen('onboarding');
+}
 
 /* ── DASHBOARD ── */
 function renderDash(){
@@ -719,6 +749,11 @@ function renderDash(){
   $('dstrmsg').textContent=s.streak>0?`🔥 ${s.streak}-day streak! Keep going.`:'Complete your first workout to start your streak.';
   renderHistory();renderBadges();
   if(APP.program){$('today-sec').style.display='block';renderTodayCard();}
+  // Show/hide guest UI elements
+  const cab=$('create-acct-btn');
+  const gb=$('guest-banner');
+  if(cab)cab.style.display=APP.isGuest?'inline-flex':'none';
+  if(gb)gb.style.display=APP.isGuest?'flex':'none';
 }
 function swTab(nm){
   ['home','progress','badges'].forEach(t=>{
