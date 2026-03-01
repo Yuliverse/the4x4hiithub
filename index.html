@@ -903,56 +903,64 @@ function updateUI(){
   const item=WK.queue[WK.pos];if(!item)return;
   const{ph,set,ex,enu}=item;const sn=set+1;
 
-  // Phase
+  // Phase label
   const p=$('wph');p.className='wphase';
   if(ph==='work'){p.classList.add('work');p.textContent='WORK';}
   else if(ph==='rest'){p.classList.add('rest');p.textContent='REST';}
   else{p.classList.add('arest');p.textContent='ACTIVE REST';}
 
-  $('wsl').textContent=`SET ${sn} OF 4`;
+  $('wsl').textContent='SET '+sn+' OF 4';
   $('wen').textContent=ex.n;
-  $('wenu').textContent=ph==='work'?`EXERCISE ${enu+1} OF 4`:'';
+  $('wenu').textContent=ph==='work'?'EXERCISE '+(enu+1)+' OF 4':'';
 
-  // Rest message
+  // Rest message panel
   const rm=$('rest-msg');
   if(rm){
-    if(ph==='rest'){rm.style.display='block';rm.innerHTML='<div style="font-size:36px;margin-bottom:8px;">😮‍💨</div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--blue);letter-spacing:3px;">CATCH YOUR BREATH</div><div style="font-size:11px;color:var(--dim);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;margin-top:6px;">Next exercise starting soon</div>';}
-    else if(ph==='arest'){rm.style.display='block';rm.innerHTML='<div style="font-size:36px;margin-bottom:8px;">🚶</div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--yellow);letter-spacing:3px;">ACTIVE REST</div><div style="font-size:11px;color:var(--dim);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;margin-top:6px;">March or jog on the spot</div>';}
-    else{rm.style.display='none';}
+    if(ph==='rest'){
+      rm.style.display='block';
+      rm.innerHTML='<div style="font-size:40px;margin-bottom:10px;">&#128563;</div>'
+        +'<div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:#00aaff;letter-spacing:3px;">CATCH YOUR BREATH</div>'
+        +'<div style="font-size:11px;color:#888;font-family:Barlow Condensed,sans-serif;letter-spacing:1px;margin-top:6px;">Next exercise starting soon</div>';
+    } else if(ph==='arest'){
+      rm.style.display='block';
+      rm.innerHTML='<div style="font-size:40px;margin-bottom:10px;">&#128694;</div>'
+        +'<div style="font-family:Bebas Neue,sans-serif;font-size:22px;color:#ffd740;letter-spacing:3px;">ACTIVE REST</div>'
+        +'<div style="font-size:11px;color:#888;font-family:Barlow Condensed,sans-serif;letter-spacing:1px;margin-top:6px;">March or jog on the spot</div>';
+    } else {
+      rm.style.display='none';
+    }
   }
 
-  // Next
+  // Next interval label
   const nx=WK.queue[WK.pos+1];const ne=$('wnxt');
-  if(ne){if(nx)ne.innerHTML=`UP NEXT: <span>${nx.ph==='work'?nx.ex.n:nx.ph==='rest'?'REST':'ACTIVE REST'}</span>`;
-  else ne.innerHTML='UP NEXT: <span>FINISH! 🏆</span>';}
+  if(ne){
+    if(nx)ne.innerHTML='UP NEXT: <span>'+( nx.ph==='work'?nx.ex.n : nx.ph==='rest'?'REST':'ACTIVE REST' )+'</span>';
+    else ne.innerHTML='UP NEXT: <span>FINISH! &#127942;</span>';
+  }
 
   // Set map
   for(let i=1;i<=4;i++){const b=$('sb'+i);if(!b)continue;b.className='sbox';if(i<sn)b.classList.add('dn');else if(i===sn)b.classList.add('cur');}
 
-  // Progress
+  // Overall progress bar (top strip)
   $('wpf').style.width=((WK.pos/WK.queue.length)*100)+'%';
 
-  // Flash on video panel
-  const wv=document.querySelector('.wvideo');
-  if(wv){wv.classList.remove('fw','fr');void wv.offsetWidth;wv.classList.add(ph==='work'?'fw':'fr');}
-  // Also flash timer panel
+  // Flash timer panel
   const wl=$('wleft');
   if(wl){wl.classList.remove('fw','fr');void wl.offsetWidth;wl.classList.add(ph==='work'?'fw':'fr');}
 
-  // Video panel — show only during WORK, hide completely on rest
+  // VIDEO: show during WORK only, stop & hide on rest
   const vw=$('vwrap');
   const wvEl=document.querySelector('.wvideo');
   const wlEl=$('wleft');
   if(ph==='work'){
-    // Show video panel, normal timer width
     if(wvEl)wvEl.style.display='';
     if(wlEl)wlEl.classList.remove('rest-mode');
     if(vw&&ex.u&&vw.getAttribute('data-v')!==ex.u){
       vw.setAttribute('data-v',ex.u);
       loadVideo(vw,ex.u,ex.n);
     }
-  }else{
-    // REST or ACTIVE REST — stop video, hide panel, expand timer full-width
+  } else {
+    // Stop video & hide panel for REST / ACTIVE REST
     if(ytPlayer){try{ytPlayer.stopVideo();}catch(e){}}
     if(wvEl)wvEl.style.display='none';
     if(wlEl)wlEl.classList.add('rest-mode');
@@ -960,13 +968,13 @@ function updateUI(){
   }
 
   // Exercise list highlight
-  WK.exs.forEach((_,i)=>{
+  WK.exs.forEach(function(_,i){
     const li=$('eli'+i),lb=$('elb'+i);if(!li||!lb)return;
     li.className='exitem';lb.className='exbadge';
     if(ph==='work'&&enu===i){li.classList.add('ia');lb.classList.add('ia');}
-    else if(ph!=='work'){li.classList.remove('ia','id');lb.classList.remove('ia','id');}
   });
 }
+
 
 function tick(){
   if(WK.paused)return;
