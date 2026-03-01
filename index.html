@@ -953,8 +953,9 @@ function updateUI(){
   const wvEl=document.querySelector('.wvideo');
   const wlEl=$('wleft');
   if(ph==='work'){
-    if(wvEl)wvEl.style.display='';
     if(wlEl)wlEl.classList.remove('rest-mode');
+    if(wvEl)wvEl.style.display='';
+    // Only load if not already preloaded by tick()
     if(vw&&ex.u&&vw.getAttribute('data-v')!==ex.u){
       vw.setAttribute('data-v',ex.u);
       loadVideo(vw,ex.u,ex.n);
@@ -980,7 +981,30 @@ function tick(){
   if(WK.paused)return;
   WK.secsLeft--;
   if(WK.secsLeft<=0){nextInt();}
-  else{renderTimer();if(WK.secsLeft===10)beep(660);if(WK.secsLeft===3)beep(880);}
+  else{
+    renderTimer();
+    if(WK.secsLeft===10)beep(660);
+    if(WK.secsLeft===3)beep(880);
+    // Preload next WORK video 4 seconds before rest ends
+    const cur=WK.queue[WK.pos];
+    if(WK.secsLeft===4&&cur&&(cur.ph==='rest'||cur.ph==='arest')){
+      // Find the next work item in queue
+      for(let i=WK.pos+1;i<WK.queue.length;i++){
+        const nxt=WK.queue[i];
+        if(nxt.ph==='work'&&nxt.ex&&nxt.ex.u){
+          const vw=$('vwrap');
+          const wvEl=document.querySelector('.wvideo');
+          if(vw&&wvEl){
+            // Make video panel visible but off-screen (behind rest panel visually)
+            // by loading into vwrap while wvideo is still hidden
+            vw.setAttribute('data-v',nxt.ex.u);
+            loadVideo(vw,nxt.ex.u,nxt.ex.n);
+          }
+          break;
+        }
+      }
+    }
+  }
 }
 function renderTimer(){
   const n=$('tnum');if(n)n.textContent=WK.secsLeft;
