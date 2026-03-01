@@ -426,9 +426,9 @@ button{font-family:inherit;cursor:pointer;}
       <div class="wcards">
         <div class="wcard four" onclick="startSetup('4x4')">
           <div class="wclbl">METHOD ONE</div>
-          <div class="wctitle">4x4</div>
-          <div class="wcdesc">4 sets · 4 exercises · 1 min each · 1 min active rest</div>
-          <div class="wcmeta">⏱ 20 MINUTES TOTAL</div>
+          <div class="wctitle" style="font-size:32px;">NORWEGIAN 4x4</div>
+          <div class="wcdesc">4 sets · 4 exercises · 1 min each · 3 min active rest</div>
+          <div class="wcmeta">⏱ 28 MINUTES TOTAL</div>
         </div>
         <div class="wcard hiit" onclick="startSetup('hiit')">
           <div class="wclbl">METHOD TWO</div>
@@ -853,8 +853,8 @@ function startSetup(mode){
   setupMode=mode;
   const sc=$('scrd');
   sc.className='scard fadeup '+(mode==='4x4'?'m4':'mh');
-  $('sttl').textContent=mode==='4x4'?'4x4':'HIIT';
-  $('sdesc').textContent=mode==='4x4'?'20 mins · 4 sets · 4 exercises x 1 min + 1 min active rest':'16 mins · 4 sets · choose your intensity';
+  $('sttl').textContent=mode==='4x4'?'NORWEGIAN 4x4':'HIIT';
+  $('sdesc').textContent=mode==='4x4'?'28 mins · 4 sets · 4 exercises x 1 min + 3 min active rest':'16 mins · 4 sets · choose your intensity';
   $('hiit-opts').style.display=mode==='hiit'?'block':'none';
   const g=APP.user.gender||'gent';
   $('spnote').textContent=`Using ${g==='lady'?'Lady ✨':'Gent 💪'} exercises (${DB[g].length} in pool)`;
@@ -873,7 +873,7 @@ function buildQ(mode,exs){
   if(mode==='4x4'){
     for(let s=0;s<4;s++){
       for(let e=0;e<4;e++)q.push({ph:'work',set:s,ex:exs[(s+e)%4],enu:e,secs:60});
-      q.push({ph:'arest',set:s,ex:{n:'Active Rest — March or Jog on Spot',u:''},enu:-1,secs:60});
+      q.push({ph:'arest',set:s,ex:{n:'Active Rest — March or Jog on Spot',u:''},enu:-1,secs:180});
     }
   }else{
     for(let s=0;s<4;s++){
@@ -895,7 +895,7 @@ function launchWorkout(){
 
   // Set map
   $('smap').innerHTML=[1,2,3,4].map(i=>`<div class="sbox ${i===1?'cur':''}" id="sb${i}">S${i}<div class="ssub">SET</div></div>`).join('');
-  $('wmt').textContent=setupMode==='4x4'?'4x4 METHOD':'HIIT METHOD';
+  $('wmt').textContent=setupMode==='4x4'?'NORWEGIAN 4x4':'HIIT METHOD';
 
   // Pause btn
   const pb=$('pbtn');if(pb){pb.textContent='⏸ PAUSE';pb.classList.remove('paused');}
@@ -1090,7 +1090,7 @@ function finishWorkout(){
   beep(1320);
   if(ytPlayer){try{ytPlayer.destroy();}catch(e){} ytPlayer=null;}
   const vw=$('vwrap');if(vw){vw.removeAttribute('data-v');vw.innerHTML='';}
-  const dur=WK.mode==='4x4'?20:16;
+  const dur=WK.mode==='4x4'?28:16;
 
   if(!APP.isGuest){
     APP.stats.total++;APP.stats.mins+=dur;
