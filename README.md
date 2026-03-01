@@ -1,2 +1,2 @@
-# HalfAMin
-Half A Minute
+# 4x4HIITHUB
+4x4 HIIT Hub
