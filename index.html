@@ -390,11 +390,8 @@ button{font-family:inherit;cursor:pointer;}
     <div class="dlogo">4<span>x</span>4 HIIT HUB</div>
     <div style="display:flex;align-items:center;gap:10px;">
       <button id="create-acct-btn" onclick="startOnboarding()" class="btn btn-primary btn-sm" style="display:none;">⚡ CREATE ACCOUNT</button>
-      <div class="upill" onclick="openProfile()" style="cursor:pointer;" title="Edit profile">
-        <div>
-          <div class="uav" id="dav">G</div>
-          <div class="uav-hint" id="av-hint"></div>
-        </div>
+      <div class="upill">
+        <div class="uav" id="dav">G</div>
         <div class="uname" id="dunm">GUEST</div>
       </div>
     </div>
@@ -461,18 +458,20 @@ button{font-family:inherit;cursor:pointer;}
     <div class="ni"     id="ni-program"  onclick="goProgram()"><span class="ico">📋</span>Program</div>
     <div class="ni"     id="ni-progress" onclick="swTab('progress');setNav('progress')"><span class="ico">📈</span>Progress</div>
     <div class="ni"     id="ni-badges"   onclick="swTab('badges');setNav('badges')"><span class="ico">🏅</span>Badges</div>
+    <div class="ni"     id="ni-profile"  onclick="goProfileScreen()" style="display:none;"><span class="ico">👤</span>Profile</div>
   </nav>
 </div>
 
-<!-- PROFILE MODAL -->
-<div id="profile-modal" class="modal-overlay" onclick="if(event.target===this)closeProfile()">
-  <div class="modal-box">
-    <div class="modal-hdr">
-      <div class="modal-ttl">MY PROFILE</div>
-      <button class="modal-close" onclick="closeProfile()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="success-msg" id="profile-success">✓ PROFILE UPDATED</div>
+<!-- ══ PROFILE SCREEN ══ -->
+<div id="screen-profile" class="screen">
+  <div class="prf-hdr">
+    <button class="back-btn" onclick="showScreen('dashboard')">← BACK</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;">MY PROFILE</div>
+  </div>
+  <div class="prf-body pb70">
+    <div class="prf-card">
+      <div class="ftitle" style="font-size:28px;margin-bottom:4px;">ACCOUNT DETAILS</div>
+      <div class="fsub" style="margin-bottom:22px;">UPDATE YOUR INFORMATION</div>
 
       <div class="field"><label>Name / Username</label>
         <input id="pf-name" type="text" autocomplete="off" placeholder="e.g. IronMike">
@@ -506,16 +505,23 @@ button{font-family:inherit;cursor:pointer;}
 
       <button class="btn btn-primary btn-block" onclick="saveProfile()">SAVE CHANGES ✓</button>
 
-      <hr class="modal-divider">
+      <hr class="prf-divider">
 
       <button class="btn btn-block" onclick="logOut()"
-        style="background:transparent;border:1px solid var(--bdr);color:var(--dim);width:100%;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:11px;cursor:pointer;transition:all .2s;"
+        style="background:transparent;border:1px solid var(--bdr);color:var(--dim);width:100%;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:12px;cursor:pointer;transition:all .2s;"
         onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
         onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--dim)'">
         ⏏ LOG OUT
       </button>
     </div>
   </div>
+  <nav class="nav">
+    <div class="ni" onclick="showScreen('dashboard');setNav('home')"><span class="ico">🏠</span>Home</div>
+    <div class="ni" onclick="goProgram()"><span class="ico">📋</span>Program</div>
+    <div class="ni" onclick="showScreen('dashboard');swTab('progress')"><span class="ico">📈</span>Progress</div>
+    <div class="ni" onclick="showScreen('dashboard');swTab('badges')"><span class="ico">🏅</span>Badges</div>
+    <div class="ni on"><span class="ico">👤</span>Profile</div>
+  </nav>
 </div>
 <!-- ══ PROGRAM ══ -->
 <div id="screen-program" class="screen">
@@ -794,11 +800,11 @@ function startOnboarding(){
   showScreen('onboarding');
 }
 
-/* ── PROFILE MODAL ── */
+/* ── PROFILE SCREEN ── */
 let pfSel={gender:'',level:''};
 
-function openProfile(){
-  if(APP.isGuest){startOnboarding();return;}
+function goProfileScreen(){
+  if(APP.isGuest)return;
   const u=APP.user;
   pfSel.gender=u.gender||'gent';
   pfSel.level=u.level||'moderate';
@@ -806,54 +812,44 @@ function openProfile(){
   const n=$('pf-name');if(n)n.value=u.name||'';
   const e=$('pf-email');if(e)e.value=u.email||'';
   const d=$('pf-days');if(d)d.value=u.days||4;
-  // Radio buttons — gender
+  // Gender radio
   ['pf-gent','pf-lady'].forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
   const gEl=$('pf-'+(pfSel.gender==='lady'?'lady':'gent'));if(gEl)gEl.classList.add('on');
-  // Radio buttons — level
+  // Level radio
   ['pf-beg','pf-mod','pf-adv'].forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
   const lvMap={beginner:'pf-beg',moderate:'pf-mod',advanced:'pf-adv'};
   const lvEl=$(lvMap[pfSel.level]||'pf-mod');if(lvEl)lvEl.classList.add('on');
-  // Hide success message
-  const sm=$('profile-success');if(sm)sm.classList.remove('show');
-  // Open modal
-  const m=$('profile-modal');if(m)m.classList.add('open');
-}
-
-function closeProfile(){
-  const m=$('profile-modal');if(m)m.classList.remove('open');
+  showScreen('profile');
 }
 
 function pfPickR(key,val,...ids){
   pfSel[key]=val;
-  ids.forEach(id=>{const el=$(id);if(el)el.classList.remove('on');});
-  // Find the button whose onclick contains this value and highlight it
   ids.forEach(id=>{
     const el=$(id);if(!el)return;
     const oc=el.getAttribute('onclick')||'';
-    if(oc.includes("'"+val+"'")){el.classList.add('on');}
+    el.classList.toggle('on', oc.includes("'"+val+"'"));
   });
 }
 
 function saveProfile(){
   const nm=($('pf-name').value||'').trim();
-  if(!nm){$('pf-name').focus();return;}
+  if(!nm){const n=$('pf-name');if(n)n.focus();return;}
   APP.user.name=nm;
   APP.user.email=($('pf-email').value||'').trim();
   APP.user.gender=pfSel.gender||APP.user.gender;
   APP.user.level=pfSel.level||APP.user.level;
   APP.user.days=parseInt($('pf-days').value)||APP.user.days;
   save();
-  renderDash();
-  const sm=$('profile-success');if(sm)sm.classList.add('show');
-  setTimeout(()=>{if(sm)sm.classList.remove('show');},2500);
+  showScreen('dashboard');
+  setNav('home');
 }
 
 function logOut(){
-  const m=$('profile-modal');if(m)m.classList.remove('open');
   APP={isGuest:true,user:{name:'Guest',email:'',gender:'gent',level:'beginner',goals:[],days:4,wantProg:false,weeks:8},stats:{total:0,streak:0,best:0,mins:0,lastDate:'',badges:[],history:[]},program:null};
   try{localStorage.removeItem('4x4hub');}catch(e){}
   showScreen('splash');
 }
+
 
 /* ── DASHBOARD ── */
 function renderDash(){
@@ -871,9 +867,9 @@ function renderDash(){
   const gb=$('guest-banner');
   if(cab)cab.style.display=APP.isGuest?'inline-flex':'none';
   if(gb)gb.style.display=APP.isGuest?'flex':'none';
-  // Avatar hint — show edit indicator for logged-in users
-  const avh=$('av-hint');
-  if(avh)avh.textContent=APP.isGuest?'':'EDIT';
+  // Show Profile nav item only for logged-in users
+  const nip=$('ni-profile');
+  if(nip)nip.style.display=APP.isGuest?'none':'flex';
 }
 function swTab(nm){
   ['home','progress','badges'].forEach(t=>{
